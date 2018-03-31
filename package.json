@@ -1,0 +1,23 @@
+{
+  "name": "seguir",
+  "version": "1.0.0",
+  "description": "Native node \"tail\" functionality.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "tail",
+    "file",
+    "reader",
+    "fs",
+    "native",
+    "always-tail"
+  ],
+  "author": "Matthew Alexander <matt.j.alexander@utah.edu>",
+  "license": "MIT",
+  "dependencies": {
+    "debug": "^3.1.0",
+    "pmx": "^1.6.4"
+  }
+}
