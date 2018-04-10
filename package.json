@@ -2,22 +2,23 @@
   "name": "seguir",
   "version": "1.0.0",
   "description": "Native node \"tail\" functionality.",
-  "main": "index.js",
+  "main": "cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": "./seguir",
+  "private": "true",
   "keywords": [
     "tail",
-    "file",
-    "reader",
+    "read",
     "fs",
-    "native",
     "always-tail"
   ],
   "author": "Matthew Alexander <matt.j.alexander@utah.edu>",
   "license": "MIT",
   "dependencies": {
-    "debug": "^3.1.0",
+    "ajv": "^6.4.0",
+    "commander": "^2.15.1",
     "pmx": "^1.6.4"
   }
 }

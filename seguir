@@ -1,0 +1,186 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const Ajv = require("ajv");
+const Tail = require("./tail.js");
+const EventEmitter = require("events").EventEmitter;
+
+const seguir = require("commander");
+const fs = require("fs");
+const os = require('os');
+const schema = require("./schema.json");
+const ajv = new Ajv();
+
+seguir
+  .version("1.0.0", "-v, --version")
+  .description("Node.js native \"tail\" functionality.")
+  .option("-c, --config <file>", "load settings from a configuration file. defaults to /etc/seguir/config.json")
+  .option("-f, --files <files>", "comma separated list of absolute file paths to watch")
+  .option("-C, --checkpoint-directory <directory>", "directory to use for checkpointing in case of failures. defaults to /srv/seguir.")
+  .option("-o, --offset <position>", "file start offset. defaults to end of file.")
+  .option("-s, --separator <separator>", "line separator. defaults to \\n.")
+  .option("-f, --no-follow", "do not follow rotated files. defaults to false.")
+  .parse(process.argv);
+
+let offset = undefined;
+let checkpointDirectory = os.tmpdir();
+let checkpointFrequency = 30000;
+let follow = true;
+let separator = "\n";
+let files = [];
+let plugins = [];
+let config = {};
+let emitter = new EventEmitter();
+
+if (seguir.config) {
+  config = fs.readFileSync(seguir.config);
+  if (!ajv.validate(schema, config)) {
+    console.error(ajv.errorsText());
+    process.exit(1);
+  }
+
+  config = JSON.parse(config);
+
+  if (config.outputs) {
+    for (const outputter of Object.keys(config.outputs)) {
+      console.log({
+        message: "Configuring plugin.",
+        module: config.outputs[outputter].module
+      });
+
+      const Plugin = require(config.outputs[outputter].module);
+      const options = Object.assign({}, config.outputs[outputter]);
+      delete options.module;
+      const plugin = new Plugin(options, emitter);
+      plugins.push(plugin);
+
+      console.log({
+        message: "Plugin configured.",
+        module: config.outputs[outputter].module
+      });
+
+      plugin.start();
+    }
+  }
+}
+
+if (!seguir.follow) {
+  follow = seguir.follow;
+}
+
+if (!seguir.separator) {
+  separator = seguir.separator;
+}
+
+if (seguir.offset) {
+  offset = seguir.offset;
+} else if (typeof config.offset !== "undefined") {
+  offset = config.offset;
+}
+
+if (seguir.checkpointDirectory) {
+  checkpointDirectory = seguir.checkpointDirectory;
+} else if (config.checkpointDirectory) {
+  checkpointDirectory = config.checkpointDirectory;
+}
+
+if (seguir.checkpointFrequency) {
+  checkpointDirectory = seguir.checkpointFrequency;
+} else if (config.checkpointFrequency) {
+  checkpointDirectory = config.checkpointFrequency;
+}
+
+if (seguir.files) {
+  files = seguir.files.split(",");
+} else if (typeof seguir.files !== "undefined") {
+  files = seguir.files;
+}
+
+const checkpointPath = checkpointDirectory + "/checkpoint.log";
+
+let checkpoints = {};
+try {
+  checkpoints = JSON.parse(fs.readFileSync(checkpointDirectory + "/checkpoint.log"));
+} catch (err) {
+  if (err.code !== "ENOENT") {
+    throw err;
+  }
+}
+
+const keys = Object.keys(checkpoints);
+for (const file in keys) {
+  if (!files.includes(file)) {
+    delete checkpoints[file];
+  }
+}
+
+const watched = [];
+for (const file of files) {
+  if (!keys.includes(file)) {
+    checkpoints[file] = offset;
+  }
+
+  const tail = new Tail(file, separator, {
+    follow: follow,
+    offset: offset
+  });
+
+  tail.on("error", console.error);
+  tail.on("line", (line) => {
+    emitter.emit("line", line, file);
+  });
+
+  tail.on("checkpoint", (position) => {
+    checkpoints[file] = position;
+  });
+
+  tail.watch();
+}
+
+const checkpointer = setInterval(() => {
+  console.log("Checkpointing...");
+  fs.writeFileSync(checkpointPath, JSON.stringify(checkpoints));
+}, checkpointFrequency);
+
+const terminate = function() {
+  console.error({
+    message: "Terminiating seguir instance."
+  });
+
+  for (const tail of watched) {
+    console.error({
+      message: "Unwatching all files."
+    });
+
+    tail.unwatch();
+  }
+
+  clearInterval(checkpointer);
+  console.error({
+    message: "Stopping all plugins."
+  });
+
+  for (const plugin of plugins) {
+    plugin.stop();
+  }
+};
+
+process.once('SIGINT', terminate);
+process.once('SIGQUIT', terminate);
+process.once('SIGTERM', terminate);
+
+process.once("unhandledRejection", (p, reason) => {
+  console.error({
+    message: "Unhandled rejection.",
+    promise: p,
+    reason: reason
+  });
+});
+
+process.once("uncaughtException", (err) => {
+  console.error({
+    message: "Uncaught exception.",
+    reason: err
+  });
+});
