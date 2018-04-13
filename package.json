@@ -2,23 +2,49 @@
   "name": "seguir",
   "version": "1.0.0",
   "description": "Native node \"tail\" functionality.",
-  "main": "cli.js",
+  "main": "seguir.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "npm pack | xargs npm install -g"
   },
-  "bin": "./seguir",
+  "bin": {
+    "seguir": "./seguir.js"
+  },
   "private": "true",
   "keywords": [
     "tail",
     "read",
-    "fs",
-    "always-tail"
+    "always-tail",
+    "monitoring",
+    "log management",
+    "log parser",
+    "logging",
+    "log shipper",
+    "indexing",
+    "etl",
+    "file"
   ],
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexandermjames/seguir.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexandermjames/seguir/issues",
+    "email": "matt.j.alexander@utah.edu"
+  },
   "author": "Matthew Alexander <matt.j.alexander@utah.edu>",
   "license": "MIT",
   "dependencies": {
     "ajv": "^6.4.0",
-    "commander": "^2.15.1",
-    "pmx": "^1.6.4"
+    "bunyan": "^1.8.12",
+    "commander": "^2.15.1"
+  },
+  "pkg": {
+    "scripts": "lib/**/*.js",
+    "assets": "patterns.yml"
   }
 }

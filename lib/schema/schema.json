@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SeguirConfigurationFile",
+  "description": "Seguir configuration file schema.",
+  "type": "object",
+  "properties": {
+    "options": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "separator": {
+          "type": "string"
+        },
+        "follow": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "checkpoints": {
+      "type": "object",
+      "properties": {
+        "directory": {
+          "type": "string",
+          "description": "Directory under which to store checkpoint statistics.",
+          "patternProperties": {
+            "^(/[^/]+)+$": {}
+          }
+        },
+        "rate": {
+          "type": "integer",
+          "description": "Rate, in seconds, at which to output checkpoint statistics.",
+          "minimum": 500
+        },
+        "required": [
+          "directory",
+          "rate"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "files": {
+      "type": "array",
+      "description": "List of watched files.",
+      "items": {
+        "type": "string",
+        "patternProperties": {
+          "^(/[^/]+)+$": {}
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string"
+          },
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}
