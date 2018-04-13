@@ -44,7 +44,6 @@
     "commander": "^2.15.1"
   },
   "pkg": {
-    "scripts": "lib/**/*.js",
-    "assets": "patterns.yml"
+    "scripts": "lib/**/*.js"
   }
 }
