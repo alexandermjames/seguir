@@ -4,11 +4,10 @@
   "description": "Native node \"tail\" functionality.",
   "main": "seguir.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "npm pack | xargs npm install -g"
   },
   "bin": {
-    "seguir": "./seguir.js"
+    "seguir": "./index.js"
   },
   "private": "true",
   "keywords": [

@@ -32,15 +32,15 @@
         },
         "rate": {
           "type": "integer",
-          "description": "Rate, in seconds, at which to output checkpoint statistics.",
+          "description": "Rate at which to write checkpoint statistics.",
           "minimum": 500
-        },
-        "required": [
-          "directory",
-          "rate"
-        ],
-        "additionalProperties": true
-      }
+        }
+      },
+      "required": [
+        "directory",
+        "rate"
+      ],
+      "additionalProperties": true
     },
     "files": {
       "type": "array",
@@ -59,9 +59,12 @@
         "properties": {
           "module": {
             "type": "string"
-          },
-          "additionalProperties": true
-        }
+          }
+        },
+        "required": [
+          "module"
+        ],
+        "additionalProperties": true
       }
     }
   },
